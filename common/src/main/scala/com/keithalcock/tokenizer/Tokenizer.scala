@@ -1,6 +1,6 @@
 package com.keithalcock.tokenizer
 
 abstract class Tokenizer(name: String) {
-  def tokenize(words: Array[String]): Array[Int]
+  def encode(words: Array[String]): (Array[Int], Array[Int])
   def untokenize(ints: Array[Int]): Array[String]
 }
