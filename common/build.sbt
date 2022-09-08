@@ -1,4 +1,4 @@
-name := "tokenizer-scalapy"
+name := "tokenizer-common"
 description := ""
 
 resolvers ++= Seq(
@@ -8,7 +8,6 @@ resolvers ++= Seq(
 
 libraryDependencies ++= {
   Seq(
-    "me.shadaj" %% "scalapy-core" % "0.5.2"
   )
 }
 

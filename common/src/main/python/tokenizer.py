@@ -1,9 +1,8 @@
-import torch
 
 from transformers import AutoTokenizer
 
-# tokenizer = AutoTokenizer.from_pretrained("distilbert-base-cased")
-tokenizer = AutoTokenizer.from_pretrained("xlm-roberta-base")
+tokenizer = AutoTokenizer.from_pretrained("distilbert-base-cased")
+# tokenizer = AutoTokenizer.from_pretrained("xlm-roberta-base")
 
 words = ["EU", "rejects", "German", "call", "to", "boycott", "British", "lamb", "."]
 
@@ -31,8 +30,8 @@ class Tokenizer():
   def decode(self, token_ids: list[int]) -> list[str]:
     return self.tokenizer.convert_ids_to_tokens(token_ids)
 
-# tokenizer = Tokenizer("distilbert-base-cased")
-tokenizer = Tokenizer("xlm-roberta-base")
+tokenizer = Tokenizer("distilbert-base-cased")
+# tokenizer = Tokenizer("xlm-roberta-base")
 
 words = ["EU", "rejects", "German", "call", "to", "boycott", "British", "lamb", "."]
 

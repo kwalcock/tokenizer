@@ -1,6 +1,8 @@
 package com.keithalcock.tokenizer
 
 abstract class Tokenizer(name: String) {
-  def encode(words: Array[String]): (Array[Int], Array[Int])
-  def untokenize(ints: Array[Int]): Array[String]
+  // This returns (tokenIds, wordIds)
+  def encode(words: Seq[String]): (IndexedSeq[Int], IndexedSeq[Int])
+  // This returns words
+  def decode(tokenIds: Seq[Int]): IndexedSeq[String]
 }
