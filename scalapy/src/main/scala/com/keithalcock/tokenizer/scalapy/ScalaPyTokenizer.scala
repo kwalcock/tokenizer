@@ -52,17 +52,14 @@ object ScalaPyTokenizer {
     }
 
     override def readNative(r: Platform.Pointer): Int = {
-      val isNone = Option(CPythonAPI.PyNumber_Negative(r)).isEmpty
+      val res = CPythonAPI.PyLong_AsLongLong(r)
 
-      if (isNone) {
+      if (res == -1) {
         getAndClearError()
         none
       }
-      else {
-        val res = CPythonAPI.PyLong_AsLongLong(r)
-
+      else
         res.toInt
-      }
     }
   }
 
