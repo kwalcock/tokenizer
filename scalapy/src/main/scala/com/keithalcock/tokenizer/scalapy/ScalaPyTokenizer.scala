@@ -23,13 +23,13 @@ class ScalaPyTokenizer(name: String) extends Tokenizer(name) {
       /*is_split_into_words=*/ pyTrue // False
     )
     val tokenIds = tokenInput.bracketAccess("input_ids").as[IndexedSeq[Int]]
-    val wordIds = tokenInput.word_ids(/*batch_index=*/ 0 /*=0*/) //.as[IndexedSeq[PosInt]]
-
-    val newWordIds = {
+    val wordIds = {
       implicit val reader: Reader[Int] = posIntReader
-      wordIds.as[IndexedSeq[Int]]
+
+      tokenInput.word_ids(/*batch_index=*/ 0 /*=0*/).as[IndexedSeq[Int]]
     }
-    (tokenIds, newWordIds)
+
+    (tokenIds, wordIds)
   }
 
   def decode(tokenIds: Seq[Int]): IndexedSeq[String] = {
@@ -43,21 +43,21 @@ object ScalaPyTokenizer {
 
   class IntOrNoneReader(none: Int = -1) extends Reader[Int] {
 
+    def getAndClearError(): Boolean = {
+      val errorOccurred = Platform.pointerToLong(CPythonAPI.PyErr_Occurred()) != 0
+
+      if (errorOccurred)
+        CPythonAPI.PyErr_Clear()
+      errorOccurred
+    }
+
     override def readNative(r: Platform.Pointer): Int = {
-      val isNone = {
-        val something = Option(CPythonAPI.PyNumber_Negative(r)).isEmpty
-        val errorOccurred = Platform.pointerToLong(CPythonAPI.PyErr_Occurred()) != 0
+      val isNone = Option(CPythonAPI.PyNumber_Negative(r)).isEmpty
 
-        if (errorOccurred) {
-          CPythonAPI.PyErr_Clear()
-          true
-        }
-        else
-          false
-      }
-
-      if (isNone)
+      if (isNone) {
+        getAndClearError()
         none
+      }
       else {
         val res = CPythonAPI.PyLong_AsLongLong(r)
 
