@@ -16,5 +16,8 @@ lazy val root = (project in file("."))
 
 lazy val common = project
 
+lazy val j4rs = project
+  .dependsOn(common % "compile -> compile; test -> test")
+
 lazy val scalapy = project
   .dependsOn(common % "compile -> compile; test -> test")
