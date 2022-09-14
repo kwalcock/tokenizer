@@ -14,11 +14,14 @@
  */
 package io.github.astonbitecode.j4rs.example;
 
+import org.clulab.j4rs.LibraryLoader;
+
 public class RustSimpleFunctionCall {
     private static native void fnnoargs();
 
     static {
-        System.loadLibrary("rustlib");
+        // System.loadLibrary("rustlib");
+        LibraryLoader.load("rustlib");
     }
 
     public void doCallNoArgs() {
