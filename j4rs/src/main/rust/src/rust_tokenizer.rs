@@ -23,9 +23,12 @@ fn destroy_rust_tokenizer() { // take a rust_tokenizer
 }
 
 #[call_from_java("com.keithalcock.tokenizer.j4rs.JavaTokenizer.tokenize")]
-fn rust_tokenizer_tokenize(j_int: Instance) { // take a rust_tokenizer and words, return tuple of arrays
+fn rust_tokenizer_tokenize(j_int: Instance/*, j_words: Instance*/) { // take a rust_tokenizer and words, return tuple of arrays
     let jvm: Jvm = Jvm::attach_thread().unwrap();
     let r_int: i32 = jvm.to_rust(j_int).unwrap();
+    println!("Got here");
+//    let r_words = jvm.to_rust(j_words).unwrap();
+//    println!("{}", r_words);
     println!("rust_tokenizer_tokenize!");
     println!("{}", r_int);
     return;

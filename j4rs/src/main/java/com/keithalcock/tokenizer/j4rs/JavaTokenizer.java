@@ -12,7 +12,7 @@ public class JavaTokenizer {
     public static native void destroy(/*Instance rustTokenizer*/);
 
     // Perform tokenization on the words.
-    private static native void tokenize(/*Instance rustTokenizer,*/ Instance<Integer> i);
+    private static native void tokenize(/*Instance rustTokenizer,*/ Instance<Integer> i /*, Instance<String[]> words*/);
 
     public static void create(String name) {
         destroy();
@@ -20,7 +20,7 @@ public class JavaTokenizer {
         create(Java2RustUtils.createInstance(name));
     }
 
-    public static void tokenize(/*Instance rustTokenizer,*/ Integer i) {
-        tokenize(/*rustTokenizer,*/ Java2RustUtils.createInstance(i));
+    public static void tokenize(/*Instance rustTokenizer,*/ Integer i/*, String[] words*/) {
+        tokenize(/*rustTokenizer,*/ Java2RustUtils.createInstance(i) /*, Java2RustUtils.createInstance(words)*/);
     }
 }
