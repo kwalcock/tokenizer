@@ -1,11 +1,12 @@
 [package]
-name = "rustlib"
+name = "rust_tokenizer"
 version = "0.1.0"
-authors = ["Aston <astonbitecode@gmail.com>"]
+authors = ["Keith <keith@keithalcock.com>"]
 edition = "2018"
 
 [lib]
 crate-type = ["cdylib"]
+path = "src/rust_tokenizer.rs"
 
 [dependencies]
 j4rs = "0.12"

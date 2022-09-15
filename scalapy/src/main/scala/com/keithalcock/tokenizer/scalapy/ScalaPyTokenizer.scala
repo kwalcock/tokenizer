@@ -1,7 +1,7 @@
 package com.keithalcock.tokenizer.scalapy
 
 import com.keithalcock.tokenizer.Tokenizer
-import me.shadaj.scalapy.interpreter.{CPythonAPI, CPythonInterpreter, Platform}
+import me.shadaj.scalapy.interpreter.{CPythonAPI, Platform}
 import me.shadaj.scalapy.py
 import me.shadaj.scalapy.py.SeqConverters
 import me.shadaj.scalapy.readwrite.Reader
