@@ -14,8 +14,11 @@ print(token_ids)
 word_ids = token_input.word_ids(batch_index = 0)
 print(word_ids)
 
+token_ids[2] = token_ids[3] # Get German German
 tokens = tokenizer.convert_ids_to_tokens(token_ids)
 print(tokens)
+tokens2 = token_input.tokens(batch_index = 0) # Get the regular answer
+print(tokens2)
 
 class Tokenizer():
   def __init__(self, name: str):
