@@ -2,56 +2,95 @@ use j4rs::InvocationArg;
 use j4rs::prelude::*;
 use j4rs_derive::*;
 use serde::Deserialize;
-use std::collections::HashMap;
+//use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::result::Result;
 use tokenizers::tokenizer::Tokenizer;
-use tokenizers::tokenizer::Result as TokenizersResult;
+//use tokenizers::tokenizer::Result as TokenizersResult;
 
-//static rust_tokenizer_map = HashMap::new();
+#[derive(Deserialize, Debug)]
+struct Tokenization {
+    token_ids: Vec<i32>,
+    word_ids: Vec<i32>,
+    tokens: Vec<String>
+}
+
+static global_tokenizer_id: i32 = 43;
 
 // j4rs insists that a Result is always returned and it must be an Instance.
 #[call_from_java("com.keithalcock.tokenizer.j4rs.JavaTokenizer.create")]
 fn create_rust_tokenizer(name_instance: Instance) -> Result<Instance, String> {
     let jvm: Jvm = Jvm::attach_thread().unwrap();
     let name: String = jvm.to_rust(name_instance).unwrap();
+    println!("create_rust_tokenizer({})", name);
 
-    println!("Hello from the Rust world!");
-    println!("{}", name);
-
-    let tokenizer = Tokenizer::from_pretrained(name, None).expect("Error: Tokenizer didn't load from {}!");
+    let _tokenizer = Tokenizer::from_pretrained(name, None).expect("Error: Tokenizer didn't load from {}!");
     println!("The tokenizer did not crash!");
 
     //let result = Instance::try_from(tokenizer).map_err(|error| format!("{}", error));
-    let tokenizer_id: i32 = 43;
-    let tokenizer_id_invocation_arg = InvocationArg::try_from(tokenizer_id).map_err(|error| format!("{}", error)).unwrap();
+    let tokenizer_id_invocation_arg = InvocationArg::try_from(global_tokenizer_id).map_err(|error| format!("{}", error)).unwrap();
     let tokenizer_id_result = Instance::try_from(tokenizer_id_invocation_arg).map_err(|error| format!("{}", error));
 
+    // global_tokenizer_id += 1;
     return tokenizer_id_result; // Ok is type of result
 }
 
 #[call_from_java("com.keithalcock.tokenizer.j4rs.JavaTokenizer.destroy")]
-fn destroy_rust_tokenizer() { // take a rust_tokenizer
+fn destroy_rust_tokenizer(tokenizer_id_instance: Instance) {
     let jvm: Jvm = Jvm::attach_thread().unwrap();
-    println!("destroy_rust_tokenizer");
-    let tokenizer = Tokenizer::from_pretrained("distilbert-base-cased", None).expect("tokenizer didn't load!");
+    let tokenizer_id: i32 = jvm.to_rust(tokenizer_id_instance).unwrap();
+    println!("destroy_rust_tokenizer({})", tokenizer_id);
+    // TODO: perform work
     return;
 }
 
 #[call_from_java("com.keithalcock.tokenizer.j4rs.JavaTokenizer.tokenize")]
-fn rust_tokenizer_tokenize(tokenizer_id_instance: Instance, words_instance: Instance) {
-// take a rust_tokenizer and words, return tuple of arrays
+fn rust_tokenizer_tokenize(tokenizer_id_instance: Instance, words_instance: Instance) { //  Result<Instance, String> {
     let jvm: Jvm = Jvm::attach_thread().unwrap();
     let tokenizer_id: i32 = jvm.to_rust(tokenizer_id_instance).unwrap();
     let words: Vec<String> = jvm.to_rust(words_instance).unwrap();
-
-    println!("rust_tokenizer_tokenize!");
-    println!("{}", tokenizer_id);
-
-    println!("Got here");
-    for word in words {
+    println!("rust_tokenizer_tokenize({}, <words>)", tokenizer_id);
+    for word in &words {
         print!("{} ", word);
     }
+    println!("");
     println!("No more words");
+
+    let tokenizer = Tokenizer::from_pretrained("distilbert-base-cased", None).expect("tokenizer didn't load!");
+    let encoding = tokenizer.encode(&words[..], true).unwrap();
+    let token_id_u32s = encoding.get_ids().to_vec();
+    let token_id_i32s = token_id_u32s
+       .iter()
+       .map(|&token_id_u32| token_id_u32 as i32)
+       .collect::<Vec<_>>();
+    let word_id_opts = encoding.get_word_ids();
+    let word_id_i32s = word_id_opts
+       .iter()
+       .map(|&word_id_opt| {
+           if word_id_opt.is_some() {
+               word_id_opt.unwrap() as i32
+           } else {
+               -1
+           }
+       })
+       .collect::<Vec<_>>();
+    let tokens = encoding.get_tokens().to_vec();
+
+    for token in &tokens {
+        print!("{} ", token);
+    }
+    println!();
+
+    let tokenization = Tokenization {
+        token_ids: token_id_i32s,
+        word_ids: word_id_i32s,
+        tokens: tokens
+    };
+
+//    let tokenization_invocation_arg = InvocationArg::try_from(tokens).map_err(|error| format!("{}", error)).unwrap();
+//    let tokenization_result = Instance::try_from(tokenization_invocation_arg).map_err(|error| format!("{}", error));
+
+    println!("Got here");
+//    return tokenization_result;
     return;
 }

@@ -27,10 +27,13 @@ public class JavaTokenizer {
         destroy(tokenizer_id_instance);
     };
 
-    public static void tokenize(int tokenizer_id, String[] words) {
+    public static Tokenization tokenize(int tokenizer_id, String[] words) {
         Instance tokenizer_id_instance = Java2RustUtils.createInstance(tokenizer_id);
         Instance words_instance = Java2RustUtils.createInstance(words);
+        /*Instance tokenization_instance = */ tokenize(tokenizer_id_instance, words_instance);
+        //Tokenization tokenization = Java2RustUtils.getObjectCasted(tokenization_instance);
+        Tokenization tokenization = new Tokenization(null, null, null);
 
-        tokenize(tokenizer_id_instance, words_instance);
+        return tokenization;
     }
 }
