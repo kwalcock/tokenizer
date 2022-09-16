@@ -4,14 +4,14 @@ import com.keithalcock.tokenizer.Tokenizer
 import org.clulab.j4rs.LibraryLoader
 
 class ScalaTokenizer(name: String) extends Tokenizer(name) {
-  /*val rustTokenizer =*/ JavaTokenizer.create(name)
+  val tokenizerId = JavaTokenizer.create(name)
 
   override def finalize: Unit = {
-    JavaTokenizer.destroy(/*rustTokenizer*/)
+    JavaTokenizer.destroy(tokenizerId)
   }
 
   override def encode(words: Seq[String]): (IndexedSeq[Int], IndexedSeq[Int]) = {
-    JavaTokenizer.tokenize(/*rustTokenizer,*/ 42) // just have it print so far
+    JavaTokenizer.tokenize(tokenizerId, words.toArray)
     null
   }
 

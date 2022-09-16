@@ -9,21 +9,28 @@ public class JavaTokenizer {
     private static native Instance create(Instance<String> name);
 
     // Garbage collect the RustTokenizer.
-    public static native void destroy(/*Instance rustTokenizer*/);
+    public static native void destroy(Instance<Integer> rustTokenizerId);
 
     // Perform tokenization on the words.
-    private static native void tokenize(/*Instance rustTokenizer,*/ Instance<Integer> i /*, Instance<String[]> words*/);
+    private static native void tokenize(Instance<Integer> rustTokenizerId, Instance<String[]> words);
 
-    public static Integer create(String name) {
-        destroy();
-        // return an instance of the rust.
-        Instance instance = create(Java2RustUtils.createInstance(name));
-        Integer result = Java2RustUtils.getObjectCasted(instance);
+    public static int create(String name) {
+        Instance name_instance = Java2RustUtils.createInstance(name);
+        Instance tokenizer_id_instance = create(name_instance);
+        int tokenizer_id = Java2RustUtils.getObjectCasted(tokenizer_id_instance);
 
-        return result;
+        return tokenizer_id;
     }
 
-    public static void tokenize(/*Instance rustTokenizer,*/ Integer i/*, String[] words*/) {
-        tokenize(/*rustTokenizer,*/ Java2RustUtils.createInstance(i) /*, Java2RustUtils.createInstance(words)*/);
+    public static void destroy(int tokenizer_id) {
+        Instance tokenizer_id_instance = Java2RustUtils.createInstance(tokenizer_id);
+        destroy(tokenizer_id_instance);
+    };
+
+    public static void tokenize(int tokenizer_id, String[] words) {
+        Instance tokenizer_id_instance = Java2RustUtils.createInstance(tokenizer_id);
+        Instance words_instance = Java2RustUtils.createInstance(words);
+
+        tokenize(tokenizer_id_instance, words_instance);
     }
 }
