@@ -1,13 +1,16 @@
-use std::convert::TryFrom;
-use std::result::Result;
-
 use j4rs::InvocationArg;
 use j4rs::prelude::*;
 use j4rs_derive::*;
 use serde::Deserialize;
+use std::convert::TryFrom;
+use std::result::Result;
+use tokenizers::tokenizer::Tokenizer;
+use tokenizers::tokenizer::Result as TokenizersResult;
 
 #[call_from_java("com.keithalcock.tokenizer.j4rs.JavaTokenizer.create")]
 fn create_rust_tokenizer(j_name: Instance) {
+    let tokenizer = Tokenizer::from_pretrained("distilbert-base-cased", None).expect("tokenizer didn't load!");
+
     let jvm: Jvm = Jvm::attach_thread().unwrap();
     let r_name: String = jvm.to_rust(j_name).unwrap();
     println!("Hello from the Rust world!");
@@ -19,6 +22,7 @@ fn create_rust_tokenizer(j_name: Instance) {
 fn destroy_rust_tokenizer() { // take a rust_tokenizer
     let jvm: Jvm = Jvm::attach_thread().unwrap();
     println!("destroy_rust_tokenizer");
+    let tokenizer = Tokenizer::from_pretrained("distilbert-base-cased", None).expect("tokenizer didn't load!");
     return;
 }
 
