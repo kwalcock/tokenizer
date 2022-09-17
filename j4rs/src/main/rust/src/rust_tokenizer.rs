@@ -10,9 +10,10 @@ use tokenizers::tokenizer::Tokenizer;
 
 #[derive(Deserialize, Debug)]
 struct Tokenization {
-    token_ids: Vec<i32>,
-    word_ids: Vec<i32>,
-    tokens: Vec<String>
+    token_id: i32
+//    token_ids: Vec<i32>,
+//    word_ids: Vec<i32>,
+//    tokens: Vec<String>
 }
 
 static global_tokenizer_id: i32 = 43;
@@ -45,7 +46,7 @@ fn destroy_rust_tokenizer(tokenizer_id_instance: Instance) {
 }
 
 #[call_from_java("com.keithalcock.tokenizer.j4rs.JavaTokenizer.tokenize")]
-fn rust_tokenizer_tokenize(tokenizer_id_instance: Instance, words_instance: Instance) { //  Result<Instance, String> {
+fn rust_tokenizer_tokenize(tokenizer_id_instance: Instance, words_instance: Instance) -> Result<Instance, String> {
     let jvm: Jvm = Jvm::attach_thread().unwrap();
     let tokenizer_id: i32 = jvm.to_rust(tokenizer_id_instance).unwrap();
     let words: Vec<String> = jvm.to_rust(words_instance).unwrap();
@@ -81,16 +82,24 @@ fn rust_tokenizer_tokenize(tokenizer_id_instance: Instance, words_instance: Inst
     }
     println!();
 
-    let tokenization = Tokenization {
-        token_ids: token_id_i32s,
-        word_ids: word_id_i32s,
-        tokens: tokens
-    };
+//    let tokenization = Tokenization {
+//        token_ids: token_id_i32s,
+//        word_ids: word_id_i32s,
+//        tokens: tokens
+//    };
+    let java_tokenization_instance = jvm.create_instance("com.keithalcock.tokenizer.j4rs.Tokenization", &[
+        
+        InvocationArg::try_from(32).map_err(|error| format!("{}", error)).unwrap()//,
+//        InvocationArg::try_from(token_id_i32s).map_err(|error| format!("{}", error)).unwrap(),
+  //      InvocationArg::try_from(word_id_i32s).map_err(|error| format!("{}", error)).unwrap(),
+    //    InvocationArg::try_from(tokens).map_err(|error| format!("{}", error)).unwrap()
+    ]).map_err(|error| format!("{}", error)).unwrap(); // The above is an instance!
 
 //    let tokenization_invocation_arg = InvocationArg::try_from(tokens).map_err(|error| format!("{}", error)).unwrap();
 //    let tokenization_result = Instance::try_from(tokenization_invocation_arg).map_err(|error| format!("{}", error));
+    let java_tokenization_result = Instance::try_from(java_tokenization_instance).map_err(|error| format!("{}", error));
 
     println!("Got here");
 //    return tokenization_result;
-    return;
+    return java_tokenization_result;
 }
