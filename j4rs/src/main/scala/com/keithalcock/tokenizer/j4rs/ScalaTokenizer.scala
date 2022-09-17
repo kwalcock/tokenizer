@@ -13,7 +13,9 @@ class ScalaTokenizer(name: String) extends Tokenizer(name) {
   override def encode(words: Seq[String]): (IndexedSeq[Int], IndexedSeq[Int]) = {
     val tokenization = JavaTokenizer.tokenize(tokenizerId, words.toArray)
 
-    // (tokenization.getTokenIds, tokenization.getWordIds)
+    tokenization.getTokenIds.forEach { id =>
+      println(id)
+    }
     null
   }
 
