@@ -5,11 +5,12 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 
 object LibraryLoader {
+  val label = "[FatTokenizer] "
 
   import java.io.File
 
   def println(message: String): Unit = {
-    System.err.print("[j4rs] ")
+    System.err.print(label)
     System.err.println(message)
   }
 

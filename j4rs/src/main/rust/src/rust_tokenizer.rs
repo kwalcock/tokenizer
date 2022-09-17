@@ -10,8 +10,8 @@ use tokenizers::tokenizer::Tokenizer;
 
 #[derive(Deserialize, Debug)]
 struct Tokenization {
-    token_id: i32
-//    token_ids: Vec<i32>,
+    token_id: i32,
+    token_ids: Vec<i32> //,
 //    word_ids: Vec<i32>,
 //    tokens: Vec<String>
 }
@@ -45,6 +45,13 @@ fn destroy_rust_tokenizer(tokenizer_id_instance: Instance) {
     return;
 }
 
+use std::convert::TryInto;
+
+fn demo<T, const N: usize>(v: Vec<T>) -> [T; N] {
+    v.try_into()
+        .unwrap_or_else(|v: Vec<T>| panic!("Expected a Vec of length {} but it was {}", N, v.len()))
+}
+
 #[call_from_java("com.keithalcock.tokenizer.j4rs.JavaTokenizer.tokenize")]
 fn rust_tokenizer_tokenize(tokenizer_id_instance: Instance, words_instance: Instance) -> Result<Instance, String> {
     let jvm: Jvm = Jvm::attach_thread().unwrap();
@@ -59,13 +66,13 @@ fn rust_tokenizer_tokenize(tokenizer_id_instance: Instance, words_instance: Inst
 
     let tokenizer = Tokenizer::from_pretrained("distilbert-base-cased", None).expect("tokenizer didn't load!");
     let encoding = tokenizer.encode(&words[..], true).unwrap();
-    let token_id_u32s = encoding.get_ids().to_vec();
-    let token_id_i32s = token_id_u32s
+    let token_id_u32s = encoding.get_ids();
+    let token_id_i32s = &token_id_u32s
        .iter()
        .map(|&token_id_u32| token_id_u32 as i32)
-       .collect::<Vec<_>>();
+       .collect::<Vec<_>>()[..];
     let word_id_opts = encoding.get_word_ids();
-    let word_id_i32s = word_id_opts
+    let word_id_i32s = &word_id_opts
        .iter()
        .map(|&word_id_opt| {
            if word_id_opt.is_some() {
@@ -74,10 +81,10 @@ fn rust_tokenizer_tokenize(tokenizer_id_instance: Instance, words_instance: Inst
                -1
            }
        })
-       .collect::<Vec<_>>();
-    let tokens = encoding.get_tokens().to_vec();
+       .collect::<Vec<_>>()[..];
+    let tokens = encoding.get_tokens();
 
-    for token in &tokens {
+    for token in tokens {
         print!("{} ", token);
     }
     println!();
@@ -89,8 +96,8 @@ fn rust_tokenizer_tokenize(tokenizer_id_instance: Instance, words_instance: Inst
 //    };
     let java_tokenization_instance = jvm.create_instance("com.keithalcock.tokenizer.j4rs.Tokenization", &[
         
-        InvocationArg::try_from(32).map_err(|error| format!("{}", error)).unwrap()//,
-//        InvocationArg::try_from(token_id_i32s).map_err(|error| format!("{}", error)).unwrap(),
+        InvocationArg::try_from(32).map_err(|error| format!("{}", error)).unwrap(),
+        InvocationArg::try_from(token_id_i32s).map_err(|error| format!("{}", error)).unwrap() //,
   //      InvocationArg::try_from(word_id_i32s).map_err(|error| format!("{}", error)).unwrap(),
     //    InvocationArg::try_from(tokens).map_err(|error| format!("{}", error)).unwrap()
     ]).map_err(|error| format!("{}", error)).unwrap(); // The above is an instance!

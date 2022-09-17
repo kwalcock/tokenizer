@@ -1,22 +1,19 @@
 package com.keithalcock.tokenizer.j4rs;
 
+import java.util.AbstractList;
+import java.util.ArrayList;
+
 public class Tokenization {
-//    private int tokenIds[];
+    private Integer tokenId;
+    private ArrayList tokenIds;
 //    private int wordIds[];
 //    private String tokens[];
 
-    private Integer tokenId;
-
-    /*
-    public Tokenization(int tokenIds[], int wordIds[], String tokens[]) {
-        this.tokenIds = tokenIds;
-        this.wordIds = wordIds;
-        this.tokens = tokens;
-    }
-     */
-
-    public Tokenization(Integer tokenId) {
+    public Tokenization(Integer tokenId, AbstractList<Integer> tokenIds) { // }, int wordIds[], String tokens[]) {
         this.tokenId = tokenId;
+        this.tokenIds = new ArrayList(tokenIds); // tokenIds; // tokenIds.toArray(new Integer[tokenIds.size()]);
+//        this.wordIds = wordIds;
+//        this.tokens = tokens;
     }
 
     public Integer getTokenId() {
@@ -27,13 +24,13 @@ public class Tokenization {
         this.tokenId = tokenId;
     }
 
-//    public int[] getTokenIds() {
-//        return this.tokenIds;
-//    }
+    public ArrayList<Integer> getTokenIds() {
+        return this.tokenIds;
+    }
 
-//    public void setTokenIds(int tokenIds[]) {
-//        this.tokenIds = tokenIds;
-//    }
+    public void setTokenIds(ArrayList<Integer> tokenIds) {
+        this.tokenIds = tokenIds;
+    }
 
 //    public int[] getWordIds() {
 //        return this.wordIds;

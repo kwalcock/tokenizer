@@ -8,7 +8,7 @@ resolvers ++= Seq(
 
 libraryDependencies ++= {
   Seq(
-    "io.github.astonbitecode" % "j4rs" % "0.12.0"
+    "io.github.astonbitecode" % "j4rs" % "0.13.0"
   )
 }
 
