@@ -32,8 +32,6 @@ public class JavaTokenizer {
         Instance words_instance = Java2RustUtils.createInstance(words);
         Instance tokenization_instance = tokenize(tokenizer_id_instance, words_instance);
         Tokenization tokenization = Java2RustUtils.getObjectCasted(tokenization_instance);
-        //Tokenization tokenization = Java2RustUtils.getObjectCasted(tokenization_instance);
-        // Tokenization tokenization = new Tokenization(5); // null, null, null);
 
         return tokenization;
     }
