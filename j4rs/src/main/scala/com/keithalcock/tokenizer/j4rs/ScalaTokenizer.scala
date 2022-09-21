@@ -3,6 +3,9 @@ package com.keithalcock.tokenizer.j4rs
 import com.keithalcock.tokenizer.Tokenizer
 import org.clulab.j4rs.LibraryLoader
 
+import scala.collection.mutable.{HashMap => MutableHashMap}
+import scala.ref.WeakReference
+
 class ScalaTokenizer(name: String) extends Tokenizer(name) {
   val tokenizerId = JavaTokenizer.create(name)
 
@@ -24,6 +27,19 @@ class ScalaTokenizer(name: String) extends Tokenizer(name) {
 
 object ScalaTokenizer {
   val rustLibrary = LibraryLoader.load("rust_tokenizer")
+  val map = new MutableHashMap[String, WeakReference[ScalaTokenizer]]()
 
-  def apply(name: String): ScalaTokenizer = new ScalaTokenizer(name)
+  def apply(name: String): ScalaTokenizer = synchronized {
+    // If the key is known and the weak reference is valid, then the result is
+    // Some(scalaTokenizer) with a strong reference that will remain valid.
+    val scalaTokenizerOpt = map.get(name).flatMap(_.get)
+
+    if (scalaTokenizerOpt.isDefined)
+      scalaTokenizerOpt.get
+    else {
+      val scalaTokenizer = new ScalaTokenizer(name)
+      map(name) = WeakReference(scalaTokenizer)
+      scalaTokenizer
+    }
+  }
 }
