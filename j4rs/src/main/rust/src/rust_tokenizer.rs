@@ -8,17 +8,14 @@ use std::result::Result;
 use std::sync::Mutex;
 use tokenizers::tokenizer::Tokenizer;
 
-static mut tokenizer_count: i32 = 0;
+// TODO put these together somehow
+static mut TOKENIZER_COUNT: i32 = 0;
 lazy_static! {
-        static ref tokenizer_map: Mutex<HashMap<i32, Tokenizer>> = {
-            let map: HashMap<i32, Tokenizer> = HashMap::new();
-            Mutex::new(map)
+    static ref TOKENIZER_MAP: Mutex<HashMap<i32, Tokenizer>> = {
+        let map: HashMap<i32, Tokenizer> = HashMap::new();
+        Mutex::new(map)
     };
 }
-
-// map from tokenizer_id to tokenizer
-// static mut tokenizer_map: HashMap<i32, Tokenizer> = HashMap::new();
-
 
 // j4rs insists that a Result is always returned and it must be an Instance.
 #[call_from_java("com.keithalcock.tokenizer.j4rs.JavaTokenizer.create")]
@@ -29,10 +26,9 @@ fn create_rust_tokenizer(name_instance: Instance) -> Result<Instance, String> {
 
     let tokenizer = Tokenizer::from_pretrained(name, None).unwrap();
     let tokenizer_id = unsafe {
-        tokenizer_map.lock().unwrap().insert(tokenizer_count, tokenizer);
-        // tokenizer_map.insert(tokenizer_count, tokenizer_count); // tokenizer);
-        let tokenizer_id = tokenizer_count;
-        tokenizer_count += 1;
+        TOKENIZER_MAP.lock().unwrap().insert(TOKENIZER_COUNT, tokenizer);
+        let tokenizer_id = TOKENIZER_COUNT;
+        TOKENIZER_COUNT += 1;
         tokenizer_id
     };
     let tokenizer_id_invocation_arg = InvocationArg::try_from(tokenizer_id).unwrap();
@@ -46,7 +42,7 @@ fn destroy_rust_tokenizer(tokenizer_id_instance: Instance) {
     let jvm: Jvm = Jvm::attach_thread().unwrap();
     let tokenizer_id: i32 = jvm.to_rust(tokenizer_id_instance).unwrap();
     println!("destroy_rust_tokenizer({})", tokenizer_id);
-    tokenizer_map.lock().unwrap().remove(&tokenizer_id);
+    TOKENIZER_MAP.lock().unwrap().remove(&tokenizer_id);
     return;
 }
 
@@ -62,12 +58,11 @@ fn rust_tokenizer_tokenize(tokenizer_id_instance: Instance, words_instance: Inst
     println!("");
     println!("No more words");
 
-    // let tokenizer = Tokenizer::from_pretrained("distilbert-base-cased", None).expect("tokenizer didn't load!");
-    // let tokenizer = unsafe { tokenizer_map.get(&tokenizer_id).unwrap() };
     let encoding = {
-        let tokenizer_mutex = tokenizer_map.lock().unwrap();
+        let tokenizer_mutex = TOKENIZER_MAP.lock().unwrap();
         let tokenizer= tokenizer_mutex.get(&tokenizer_id).unwrap();
 
+        // TODO: It looks like there is still a mutex on, which is a problem.
         tokenizer.encode(&words[..], true).unwrap()
     };
     let token_id_u32s = encoding.get_ids();
