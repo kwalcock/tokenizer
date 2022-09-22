@@ -17,12 +17,11 @@ lazy_static! {
     };
 }
 
-// j4rs insists that a Result is always returned and it must be an Instance.
-#[call_from_java("com.keithalcock.tokenizer.j4rs.JavaTokenizer.create")]
+#[call_from_java("org.clulab.transformers.tokenizer.j4rs.JavaJ4rsTokenizer.create")]
 fn create_rust_tokenizer(name_instance: Instance) -> Result<Instance, String> {
     let jvm: Jvm = Jvm::attach_thread().unwrap();
     let name: String = jvm.to_rust(name_instance).unwrap();
-    println!("create_rust_tokenizer({})", name);
+    println!("create_rust_tokenizer(\"{}\")", name);
 
     let tokenizer = Tokenizer::from_pretrained(name, None).unwrap();
     let tokenizer_id = unsafe {
@@ -37,26 +36,22 @@ fn create_rust_tokenizer(name_instance: Instance) -> Result<Instance, String> {
     return tokenizer_id_result;
 }
 
-#[call_from_java("com.keithalcock.tokenizer.j4rs.JavaTokenizer.destroy")]
+#[call_from_java("org.clulab.transformers.tokenizer.j4rs.JavaJ4rsTokenizer.destroy")]
 fn destroy_rust_tokenizer(tokenizer_id_instance: Instance) {
     let jvm: Jvm = Jvm::attach_thread().unwrap();
     let tokenizer_id: i32 = jvm.to_rust(tokenizer_id_instance).unwrap();
     println!("destroy_rust_tokenizer({})", tokenizer_id);
+
     TOKENIZER_MAP.lock().unwrap().remove(&tokenizer_id);
     return;
 }
 
-#[call_from_java("com.keithalcock.tokenizer.j4rs.JavaTokenizer.tokenize")]
+#[call_from_java("org.clulab.transformers.tokenizer.j4rs.JavaJ4rsTokenizer.tokenize")]
 fn rust_tokenizer_tokenize(tokenizer_id_instance: Instance, words_instance: Instance) -> Result<Instance, String> {
     let jvm: Jvm = Jvm::attach_thread().unwrap();
     let tokenizer_id: i32 = jvm.to_rust(tokenizer_id_instance).unwrap();
     let words: Vec<String> = jvm.to_rust(words_instance).unwrap();
     println!("rust_tokenizer_tokenize({}, <words>)", tokenizer_id);
-    for word in &words {
-        print!("{} ", word);
-    }
-    println!("");
-    println!("No more words");
 
     let encoding = {
         let tokenizer_mutex = TOKENIZER_MAP.lock().unwrap();
@@ -82,18 +77,11 @@ fn rust_tokenizer_tokenize(tokenizer_id_instance: Instance, words_instance: Inst
        })
        .collect::<Vec<_>>()[..];
     let tokens = encoding.get_tokens();
-
-    for token in tokens {
-        print!("{} ", token);
-    }
-    println!();
-
-    let java_tokenization_instance = jvm.create_instance("com.keithalcock.tokenizer.j4rs.Tokenization", &[
+    let java_tokenization_instance = jvm.create_instance("org.clulab.transformers.tokenizer.j4rs.JavaJ4rsTokenization", &[
         InvocationArg::try_from(token_id_i32s).unwrap(),
         InvocationArg::try_from(word_id_i32s).unwrap(),
         InvocationArg::try_from(tokens).unwrap()
     ]).unwrap();
-    let java_tokenization_result = Instance::try_from(java_tokenization_instance).map_err(|error| format!("{}", error));
 
-    return java_tokenization_result;
+    return Ok(java_tokenization_instance);
 }
