@@ -4,17 +4,18 @@ val scala213 = "2.13.8"  // up to 2.13.8
 val scala30  = "3.0.2"   // up to 3.0.2
 val scala31  = "3.1.3"   // up to 3.1.3
 
-ThisBuild / scalaVersion := scala212
-
 name := "tokenizer"
 
-ThisBuild / scalaVersion := "2.12.15"
+ThisBuild / scalaVersion := scala212
 
 lazy val root = (project in file("."))
   .dependsOn(common % "compile -> compile; test -> test")
   .dependsOn(scalapy)
 
 lazy val common = project
+
+lazy val j4rs = project
+  .dependsOn(common % "compile -> compile; test -> test")
 
 lazy val scalapy = project
   .dependsOn(common % "compile -> compile; test -> test")
