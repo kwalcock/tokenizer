@@ -29,7 +29,7 @@ class ScalaPyTokenizer(name: String) extends Tokenizer(name) {
 
       tokenInput.word_ids(/*batch_index=*/ 0 /*=0*/).as[IndexedSeq[Int]].toArray
     }
-    val tokens = tokenInput.tokens.as[IndexedSeq[String]].toArray
+    val tokens = tokenInput.tokens(/*batch_index=*/ 0 /*=0*/).as[IndexedSeq[String]].toArray
 
     Tokenization(tokenIds, wordIds, tokens)
   }
