@@ -11,11 +11,22 @@ fn get_tokenizer_id(name_instance: Instance) -> i64 {
     let name: String = jvm.to_rust(name_instance).unwrap();
     println!("create_rust_tokenizer(\"{}\")", name);
 
+    let x = Box::new(41);
+    let static_ref: &'static mut usize = Box::leak(x);
+    *static_ref += 1;
+    assert_eq!(*static_ref, 42);
+
+
     // See https://doc.rust-lang.org/std/primitive.pointer.html
-    let tokenizer_stack = Tokenizer::from_pretrained(name, None).unwrap();
-    let tokenizer_heap = Box::new(tokenizer_stack);
-    let tokenizer_ptr: *const Tokenizer = &*tokenizer_heap;
+    let tokenizer_stack: Tokenizer = Tokenizer::from_pretrained(name, None).unwrap();
+    let tokenizer_heap: Box<Tokenizer> = Box::new(tokenizer_stack);
+    let tokenizer_ref: &'static mut Tokenizer = Box::leak(tokenizer_heap);
+    let tokenizer_ptr: *mut Tokenizer = tokenizer_ref;
     let tokenizer_id =  tokenizer_ptr as i64;
+    // It lo
+    // let tokenizer_ptr = Box::into_raw(tokenizer_heap);
+    // let tokenizer_ptr: *const Tokenizer = &*tokenizer_heap;
+//    let tokenizer_id =  tokenizer_ptr as i64;
 
     println!("tokenizer_id is {}", tokenizer_id);
     let mut words = Vec::new();
@@ -59,6 +70,12 @@ fn destroy_rust_tokenizer(tokenizer_id_instance: Instance) {
     let jvm: Jvm = Jvm::attach_thread().unwrap();
     let tokenizer_id: i64 = jvm.to_rust(tokenizer_id_instance).unwrap();
     println!("destroy_rust_tokenizer({})", tokenizer_id);
+
+    // This will take ownership of the pointer and drop it later.
+
+    // unsafe {
+        // drop(Box::from_raw(my_speed));
+    // }
 
     // TODO drop something
     return;
