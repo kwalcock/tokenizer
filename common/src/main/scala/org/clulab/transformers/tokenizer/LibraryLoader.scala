@@ -36,37 +36,49 @@ object LibraryLoader {
 
   def isApple: Boolean = System.getProperty("os.arch") == "aarch64"
 
-  def load(name: String): Unit = {
-    val libname = System.mapLibraryName(name);
+  def mkResourceName(name: String): String = {
+    val libName = System.mapLibraryName(name);
     // The Mac reports a libname ending with .dylib, but Java needs .jnilib instead.
-    val jniname = replaceSuffix(libname, ".dylib", ".jnilib");
-    val resourcename =
-      if (!isMac) jniname
-      else if (isApple) "apple-" + jniname
-      else "intel-" + jniname
+    val jniName = replaceSuffix(libName, ".dylib", ".jnilib");
+    val resourceName =
+        if (!isMac) jniName
+        else if (isApple) "apple-" + jniName
+        else "intel-" + jniName
+
+    resourceName
+  }
+
+  def mkTempFile(name: String): File = {
+    val index = name.indexOf('.')
+    val prefix = name.substring(0, index)
+    val suffix = name.substring(index)
+    val tempFile = File.createTempFile(prefix + "-", suffix)
+
+    tempFile
+  }
+
+  def load(name: String): Unit = {
+    val resourceName = mkResourceName(name)
     val loadedFromPwd = {
       // Try current directory first.
       val location = System.getProperty("user.dir")
-      println("Checking " + location + " for " + jniname + "...")
-      loadFromFile(System.getProperty("user.dir"), jniname)
+      println("Checking " + location + " for " + resourceName + "...")
+      loadFromFile(System.getProperty("user.dir"), resourceName)
     }
     val loadedFromHome = !loadedFromPwd && {
       // Try home directory next.
       val location = System.getProperty("user.home")
-      println("Checking " + location + " for " + jniname + "...")
-      loadFromFile(location, jniname);
+      println("Checking " + location + " for " + resourceName + "...")
+      loadFromFile(location, resourceName);
     }
     val loadedFromResource = !loadedFromPwd && !loadedFromHome && {
       // Attempt to load from the resource via the tmp directory.
-      val index = jniname.indexOf('.')
-      val prefix = jniname.substring(0, index)
-      val suffix = jniname.substring(index)
-      val tempFile = File.createTempFile(prefix + "-", suffix)
-      println("Extracting resource " + resourcename + " to " + tempFile.getAbsolutePath + "...")
+      val tempFile = mkTempFile(resourceName)
+      println("Extracting resource " + resourceName + " to " + tempFile.getAbsolutePath + "...")
 
-      // Load the jnilib from the JAR-ed resource file, and write it to the temp file.
+      // Load the jnilib from the JARed resource file, and write it to the temp file.
       // We've anticipated the name and used it for the resource, but that could go wrong.
-      val inputStream = getClass.getClassLoader.getResourceAsStream(resourcename)
+      val inputStream = getClass.getClassLoader.getResourceAsStream(resourceName)
       val outputStream = new FileOutputStream(tempFile)
 
       val buf = new Array[Byte](8192)
