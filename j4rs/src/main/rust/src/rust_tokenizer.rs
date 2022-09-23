@@ -56,10 +56,7 @@ fn rust_tokenizer_tokenize(tokenizer_id_instance: Instance, words_instance: Inst
     let tokenizer = unsafe { &*(tokenizer_id as *const Tokenizer) };
     let encoding = tokenizer.encode(&words[..], true).unwrap();
     let token_id_u32s = encoding.get_ids();
-    let token_id_i32s = &token_id_u32s
-       .iter()
-       .map(|&token_id_u32| token_id_u32 as i32)
-       .collect::<Vec<_>>()[..];
+    let token_id_i32s = unsafe { std::mem::transmute::<&[u32], &[i32]>(token_id_u32s) };
     let word_id_opts = encoding.get_word_ids();
     let word_id_i32s = &word_id_opts
        .iter()
