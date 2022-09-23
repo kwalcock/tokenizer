@@ -1,4 +1,4 @@
-# Apps
+# scalapy
 
 1. Check `python.sbt` to see if anything needs to change.  There are several strings that specify directory and file names that have been hard-coded and won't work on your computer.
 
