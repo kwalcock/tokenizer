@@ -51,7 +51,7 @@ fn rust_tokenizer_tokenize(tokenizer_id_instance: Instance, words_instance: Inst
     let jvm: Jvm = Jvm::attach_thread().unwrap();
     let tokenizer_id: i64 = jvm.to_rust(tokenizer_id_instance).unwrap();
     let words: Vec<String> = jvm.to_rust(words_instance).unwrap();
-    println!("rust_tokenizer_tokenize({}, <words>)", tokenizer_id);
+    // println!("rust_tokenizer_tokenize({}, <words>)", tokenizer_id);
 
     let tokenizer = unsafe { &*(tokenizer_id as *const Tokenizer) };
     let encoding = tokenizer.encode(&words[..], true).unwrap();
