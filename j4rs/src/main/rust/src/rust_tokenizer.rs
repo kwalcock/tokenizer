@@ -1,20 +1,26 @@
 use j4rs::InvocationArg;
 use j4rs::prelude::*;
 use j4rs_derive::*;
-use lazy_static::lazy_static;
-use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::result::Result;
-use std::sync::Mutex;
 use tokenizers::tokenizer::Tokenizer;
 
-// TODO put these together somehow
-static mut TOKENIZER_COUNT: i32 = 0;
-lazy_static! {
-    static ref TOKENIZER_MAP: Mutex<HashMap<i32, Tokenizer>> = {
-        let map: HashMap<i32, Tokenizer> = HashMap::new();
-        Mutex::new(map)
-    };
+fn create_tokenizer(name: &String) -> i64 {
+    // See https://doc.rust-lang.org/std/primitive.pointer.html
+    let tokenizer_stack: Tokenizer = Tokenizer::from_pretrained(name, None).unwrap();
+    let tokenizer_heap: Box<Tokenizer> = Box::new(tokenizer_stack);
+    let tokenizer_ref: &'static mut Tokenizer = Box::leak(tokenizer_heap);
+    let tokenizer_ptr: *mut Tokenizer = tokenizer_ref;
+    let tokenizer_id: i64 = tokenizer_ptr as i64;
+
+    return tokenizer_id;
+}
+
+fn destroy_tokenizer(tokenizer_id: i64) {
+    let tokenizer_ptr = tokenizer_id as *mut Tokenizer;
+    // This takes ownership and will cause memory to be released.
+    unsafe { Box::from_raw(tokenizer_ptr) };
+    return;
 }
 
 #[call_from_java("org.clulab.transformers.tokenizer.j4rs.JavaJ4rsTokenizer.create")]
@@ -23,13 +29,7 @@ fn create_rust_tokenizer(name_instance: Instance) -> Result<Instance, String> {
     let name: String = jvm.to_rust(name_instance).unwrap();
     println!("create_rust_tokenizer(\"{}\")", name);
 
-    let tokenizer = Tokenizer::from_pretrained(name, None).unwrap();
-    let tokenizer_id = unsafe {
-        TOKENIZER_MAP.lock().unwrap().insert(TOKENIZER_COUNT, tokenizer);
-        let tokenizer_id = TOKENIZER_COUNT;
-        TOKENIZER_COUNT += 1;
-        tokenizer_id
-    };
+    let tokenizer_id = create_tokenizer(&name);
     let tokenizer_id_invocation_arg = InvocationArg::try_from(tokenizer_id).unwrap();
     let tokenizer_id_result = Instance::try_from(tokenizer_id_invocation_arg).map_err(|error| format!("{}", error));
 
@@ -39,32 +39,24 @@ fn create_rust_tokenizer(name_instance: Instance) -> Result<Instance, String> {
 #[call_from_java("org.clulab.transformers.tokenizer.j4rs.JavaJ4rsTokenizer.destroy")]
 fn destroy_rust_tokenizer(tokenizer_id_instance: Instance) {
     let jvm: Jvm = Jvm::attach_thread().unwrap();
-    let tokenizer_id: i32 = jvm.to_rust(tokenizer_id_instance).unwrap();
+    let tokenizer_id: i64 = jvm.to_rust(tokenizer_id_instance).unwrap();
     println!("destroy_rust_tokenizer({})", tokenizer_id);
 
-    TOKENIZER_MAP.lock().unwrap().remove(&tokenizer_id);
+    destroy_tokenizer(tokenizer_id);
     return;
 }
 
 #[call_from_java("org.clulab.transformers.tokenizer.j4rs.JavaJ4rsTokenizer.tokenize")]
 fn rust_tokenizer_tokenize(tokenizer_id_instance: Instance, words_instance: Instance) -> Result<Instance, String> {
     let jvm: Jvm = Jvm::attach_thread().unwrap();
-    let tokenizer_id: i32 = jvm.to_rust(tokenizer_id_instance).unwrap();
+    let tokenizer_id: i64 = jvm.to_rust(tokenizer_id_instance).unwrap();
     let words: Vec<String> = jvm.to_rust(words_instance).unwrap();
     println!("rust_tokenizer_tokenize({}, <words>)", tokenizer_id);
 
-    let encoding = {
-        let tokenizer_mutex = TOKENIZER_MAP.lock().unwrap();
-        let tokenizer= tokenizer_mutex.get(&tokenizer_id).unwrap();
-
-        // TODO: It looks like there is still a mutex on, which is a problem.
-        tokenizer.encode(&words[..], true).unwrap()
-    };
+    let tokenizer = unsafe { &*(tokenizer_id as *const Tokenizer) };
+    let encoding = tokenizer.encode(&words[..], true).unwrap();
     let token_id_u32s = encoding.get_ids();
-    let token_id_i32s = &token_id_u32s
-       .iter()
-       .map(|&token_id_u32| token_id_u32 as i32)
-       .collect::<Vec<_>>()[..];
+    let token_id_i32s = unsafe { std::mem::transmute::<&[u32], &[i32]>(token_id_u32s) };
     let word_id_opts = encoding.get_word_ids();
     let word_id_i32s = &word_id_opts
        .iter()
