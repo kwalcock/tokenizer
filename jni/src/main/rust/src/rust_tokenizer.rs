@@ -1,8 +1,11 @@
-use j4rs::InvocationArg;
-use j4rs::prelude::*;
-use j4rs_derive::*;
+use jni::JNIEnv;
+use jni::objects::JClass;
+use jni::objects::JString;
+use jni::sys::jlong;
+use jni::sys::jstring;
 use std::convert::TryFrom;
 use std::result::Result;
+use std::io::{self, Write};
 use tokenizers::tokenizer::Tokenizer;
 
 fn create_tokenizer(name: &String) -> i64 {
@@ -23,29 +26,27 @@ fn destroy_tokenizer(tokenizer_id: i64) {
     return;
 }
 
-#[call_from_java("org.clulab.transformers.tokenizer.j4rs.JavaJ4rsTokenizer.create")]
-fn create_rust_tokenizer(name_instance: Instance) -> Result<Instance, String> {
-    let jvm: Jvm = Jvm::attach_thread().unwrap();
-    let name: String = jvm.to_rust(name_instance).unwrap();
-    println!("create_rust_tokenizer(\"{}\")", name);
+#[no_mangle]
+pub extern "system" fn Java_org_clulab_transformers_tokenizer_jni_JavaJniTokenizer_native_1create(env: JNIEnv,
+        _class: JClass, j_name: JString) -> jlong {
+    let r_name: String = env.get_string(j_name).unwrap().into();
+    eprintln!("=> native_create(\"{}\")", r_name);
 
-    let tokenizer_id = create_tokenizer(&name);
-    let tokenizer_id_invocation_arg = InvocationArg::try_from(tokenizer_id).unwrap();
-    let tokenizer_id_result = Instance::try_from(tokenizer_id_invocation_arg).map_err(|error| format!("{}", error));
-
-    return tokenizer_id_result;
+    let tokenizer_id = create_tokenizer(&r_name);
+    eprintln!("<= {}", tokenizer_id);
+    return tokenizer_id;
 }
 
-#[call_from_java("org.clulab.transformers.tokenizer.j4rs.JavaJ4rsTokenizer.destroy")]
-fn destroy_rust_tokenizer(tokenizer_id_instance: Instance) {
-    let jvm: Jvm = Jvm::attach_thread().unwrap();
-    let tokenizer_id: i64 = jvm.to_rust(tokenizer_id_instance).unwrap();
-    println!("destroy_rust_tokenizer({})", tokenizer_id);
-
+#[no_mangle]
+pub extern "system" fn Java_org_clulab_transformers_tokenizer_jni_JavaJniTokenizer_native_1destroy(_env: JNIEnv,
+        _class: JClass, tokenizer_id: jlong) {
+    eprintln!("=> destroy_rust_tokenizer({})", tokenizer_id);
+    
     destroy_tokenizer(tokenizer_id);
     return;
 }
 
+/*
 #[call_from_java("org.clulab.transformers.tokenizer.j4rs.JavaJ4rsTokenizer.tokenize")]
 fn rust_tokenizer_tokenize(tokenizer_id_instance: Instance, words_instance: Instance) -> Result<Instance, String> {
     let jvm: Jvm = Jvm::attach_thread().unwrap();
@@ -77,3 +78,4 @@ fn rust_tokenizer_tokenize(tokenizer_id_instance: Instance, words_instance: Inst
 
     return Ok(java_tokenization_instance);
 }
+*/

@@ -1,4 +1,4 @@
-package org.clulab.transformers.tokenizer.j4rs
+package org.clulab.transformers.tokenizer.jni
 
 object TimeTokenizerApp extends App {
   val sentences = Array(
@@ -8,7 +8,7 @@ object TimeTokenizerApp extends App {
     Array("The", "CLU", "lab", "includes", "members", "from", "the", "Computer", "Science", "department,", "the", "Linguistics", "department,", "and", "the", "School", "of", "Information", ".", "For", "more", "on", "natural", "language", "processing", "(", "NLP", ")", "work", "at", "UofA", ",", "please", "see", "our", "NLP", "cluster", "page", ".")
   )
   val name = "distilbert-base-cased"
-  val tokenizer = ScalaJ4rsTokenizer(name)
+  val tokenizer = ScalaJniTokenizer(name)
 
   def loop(): Unit = {
     1.until(1000).par.foreach { _ =>
