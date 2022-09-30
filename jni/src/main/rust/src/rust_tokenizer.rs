@@ -1,11 +1,11 @@
 use jni::JNIEnv;
+use jni::objects::AutoArray;
 use jni::objects::JClass;
 use jni::objects::JString;
+use jni::objects::ReleaseMode;
 use jni::sys::jlong;
-use jni::sys::jstring;
-use std::convert::TryFrom;
+use jni::sys::jobjectArray;
 use std::result::Result;
-use std::io::{self, Write};
 use tokenizers::tokenizer::Tokenizer;
 
 fn create_tokenizer(name: &String) -> i64 {
@@ -30,20 +30,39 @@ fn destroy_tokenizer(tokenizer_id: i64) {
 pub extern "system" fn Java_org_clulab_transformers_tokenizer_jni_JavaJniTokenizer_native_1create(env: JNIEnv,
         _class: JClass, j_name: JString) -> jlong {
     let r_name: String = env.get_string(j_name).unwrap().into();
-    eprintln!("=> native_create(\"{}\")", r_name);
+    eprintln!("[Tokenizer] => create_rust_tokenizer(\"{}\")", r_name);
 
     let tokenizer_id = create_tokenizer(&r_name);
-    eprintln!("<= {}", tokenizer_id);
+    eprintln!("[Tokenizer] <= {}", tokenizer_id);
     return tokenizer_id;
 }
 
 #[no_mangle]
 pub extern "system" fn Java_org_clulab_transformers_tokenizer_jni_JavaJniTokenizer_native_1destroy(_env: JNIEnv,
         _class: JClass, tokenizer_id: jlong) {
-    eprintln!("=> destroy_rust_tokenizer({})", tokenizer_id);
+    eprintln!("[Tokenizer] => destroy_rust_tokenizer({})", tokenizer_id);
     
     destroy_tokenizer(tokenizer_id);
     return;
+}
+
+#[no_mangle]
+pub extern "system" fn Java_org_clulab_transformers_tokenizer_jni_JavaJniTokenizer_native_1tokenize(env: JNIEnv,
+        _class: JClass, tokenizer_id: jlong, words: jobjectArray) -> jlong {
+    //let words: Vec<String> = jvm.to_rust(words_instance).unwrap();
+    eprintln!("[Tokenizer] => rust_tokenizer_tokenize({}, <words>)", tokenizer_id);
+
+    let word_count = env.get_array_length(words).unwrap();
+    for i in 0..word_count {
+        let j_word = JString::from(env.get_object_array_element(words, i).unwrap());
+        let r_word: String = env.get_string(j_word).unwrap().into();
+
+        println!("{} = {}", i, r_word);
+    }
+    //env.get_object_array_element(array, index)
+    //let result: Result<AutoArray<JString>> = env.get_array_elements(words, ReleaseMode::NoCopyBack);
+
+    return 5;
 }
 
 /*
