@@ -48,19 +48,42 @@ pub extern "system" fn Java_org_clulab_transformers_tokenizer_jni_JavaJniTokeniz
 
 #[no_mangle]
 pub extern "system" fn Java_org_clulab_transformers_tokenizer_jni_JavaJniTokenizer_native_1tokenize(env: JNIEnv,
-        _class: JClass, tokenizer_id: jlong, words: jobjectArray) -> jlong {
+        _class: JClass, tokenizer_id: jlong, j_words: jobjectArray) -> jlong {
     //let words: Vec<String> = jvm.to_rust(words_instance).unwrap();
     eprintln!("[Tokenizer] => rust_tokenizer_tokenize({}, <words>)", tokenizer_id);
 
-    let word_count = env.get_array_length(words).unwrap();
+    let word_count = env.get_array_length(j_words).unwrap();
+    let mut r_words: Vec<String> = Vec::with_capacity(word_count as usize); 
     for i in 0..word_count {
-        let j_word = JString::from(env.get_object_array_element(words, i).unwrap());
+        let j_word = JString::from(env.get_object_array_element(j_words, i).unwrap());
         let r_word: String = env.get_string(j_word).unwrap().into();
 
         println!("{} = {}", i, r_word);
+        r_words.push(r_word);
     }
-    //env.get_object_array_element(array, index)
-    //let result: Result<AutoArray<JString>> = env.get_array_elements(words, ReleaseMode::NoCopyBack);
+
+
+    let tokenizer = unsafe { &*(tokenizer_id as *const Tokenizer) };
+    let encoding = tokenizer.encode(&r_words[..], true).unwrap();
+    let token_id_u32s = encoding.get_ids();
+    let token_id_i32s = unsafe { std::mem::transmute::<&[u32], &[i32]>(token_id_u32s) };
+    let word_id_opts = encoding.get_word_ids();
+    let word_id_i32s = &word_id_opts
+        .iter()
+        .map(|&word_id_opt| {
+            if word_id_opt.is_some() {
+                word_id_opt.unwrap() as i32
+            } else {
+                -1
+            }
+        })
+        .collect::<Vec<_>>()[..];
+    let tokens = encoding.get_tokens();
+
+    for token in tokens {
+        println!("{}", token);
+    }
+
 
     return 5;
 }
