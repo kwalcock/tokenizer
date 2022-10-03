@@ -1,7 +1,5 @@
 package org.clulab.transformers.tokenizer.jni;
 
-import java.util.AbstractList;
-
 public class JavaJniTokenization {
     public int tokenIds[];
     public int wordIds[];

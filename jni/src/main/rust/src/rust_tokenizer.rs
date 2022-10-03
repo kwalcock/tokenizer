@@ -4,6 +4,7 @@ use jni::objects::JObject;
 use jni::objects::JString;
 use jni::objects::JValue;
 use jni::sys::jlong;
+use jni::sys::jobject;
 use jni::sys::jsize;
 use jni::sys::jobjectArray;
 use tokenizers::tokenizer::Tokenizer;
@@ -47,8 +48,8 @@ pub extern "system" fn Java_org_clulab_transformers_tokenizer_jni_JavaJniTokeniz
 
 #[no_mangle]
 pub extern "system" fn Java_org_clulab_transformers_tokenizer_jni_JavaJniTokenizer_native_1tokenize(env: JNIEnv,
-        _class: JClass, tokenizer_id: jlong, j_words: jobjectArray) -> jlong {
-    eprintln!("[Tokenizer] => rust_tokenizer_tokenize({}, <words>)", tokenizer_id);
+        _class: JClass, tokenizer_id: jlong, j_words: jobjectArray) -> jobject {
+    // eprintln!("[Tokenizer] => rust_tokenizer_tokenize({}, <words>)", tokenizer_id);
 
     let word_count = env.get_array_length(j_words).unwrap();
     let mut r_words: Vec<String> = Vec::with_capacity(word_count as usize); 
@@ -89,10 +90,10 @@ pub extern "system" fn Java_org_clulab_transformers_tokenizer_jni_JavaJniTokeniz
         let j_token = env.new_string(token).unwrap();
         let _ = env.set_object_array_element(j_tokens, i as jsize, j_token);
 
-        println!("{}", token);
+        // println!("{}", token);
     }
 
-    let _tokenization = env.new_object(
+    let j_tokenization = env.new_object(
         "org/clulab/transformers/tokenizer/jni/JavaJniTokenization",
         "([I[I[Ljava/lang/String;)V",
         &[
@@ -100,7 +101,7 @@ pub extern "system" fn Java_org_clulab_transformers_tokenizer_jni_JavaJniTokeniz
             JValue::from(j_word_ids),
             JValue::from(j_tokens)
         ]
-    ).unwrap();
+    ).unwrap().into_inner();
 
-    return 5;
+    return j_tokenization;
 }

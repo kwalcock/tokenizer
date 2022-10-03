@@ -17,12 +17,11 @@ class ScalaJniTokenizer(name: String) extends Tokenizer(name) {
   override def tokenize(words: Array[String]): Tokenization = {
     val javaJniTokenization = JavaJniTokenizer.tokenize(tokenizerId, words)
 
-//    Tokenization(
-//      javaJniTokenization.tokenIds,
-//      javaJniTokenization.wordIds,
-//      javaJniTokenization.tokens
-//    )
-    null
+    Tokenization(
+      javaJniTokenization.tokenIds,
+      javaJniTokenization.wordIds,
+      javaJniTokenization.tokens
+    )
   }
 }
 

@@ -21,11 +21,9 @@ public class JavaJniTokenizer {
         native_destroy(tokenizer_id);
     };
 
-    public static long /* JavaJniTokenization*/ tokenize(long tokenizer_id, String[] words) {
-        // Figure out how to pin the result so it doesn't change place when it gets returned.
-        /*JavaJniTokenization tokenization =*/ native_tokenize(tokenizer_id, words);
+    public static JavaJniTokenization tokenize(long tokenizer_id, String[] words) {
+        JavaJniTokenization tokenization = native_tokenize(tokenizer_id, words);
 
-//        return tokenization;
-        return 0L;
+        return tokenization;
     }
 }
