@@ -9,7 +9,7 @@ public class JavaJniTokenizer {
     public static native void native_destroy(long rustTokenizerId);
 
     // Perform tokenization on the words.
-    private static native long /*JavaJniTokenization*/ native_tokenize(long rustTokenizerId, String[] words);
+    private static native JavaJniTokenization native_tokenize(long rustTokenizerId, String[] words);
 
     public static long create(String name) {
         long tokenizer_id = native_create(name);
@@ -22,6 +22,7 @@ public class JavaJniTokenizer {
     };
 
     public static long /* JavaJniTokenization*/ tokenize(long tokenizer_id, String[] words) {
+        // Figure out how to pin the result so it doesn't change place when it gets returned.
         /*JavaJniTokenization tokenization =*/ native_tokenize(tokenizer_id, words);
 
 //        return tokenization;

@@ -1,15 +1,15 @@
 use jni::JNIEnv;
-use jni::objects::AutoArray;
 use jni::objects::JClass;
+use jni::objects::JObject;
 use jni::objects::JString;
-use jni::objects::ReleaseMode;
+use jni::objects::JValue;
 use jni::sys::jlong;
+use jni::sys::jsize;
 use jni::sys::jobjectArray;
-use std::result::Result;
 use tokenizers::tokenizer::Tokenizer;
 
 fn create_tokenizer(name: &String) -> i64 {
-    // See https://doc.rust-lang.org/std/primitive.pointer.html
+    // See https://doc.rust-lang.org/std/primitive.pointer.html.
     let tokenizer_stack: Tokenizer = Tokenizer::from_pretrained(name, None).unwrap();
     let tokenizer_heap: Box<Tokenizer> = Box::new(tokenizer_stack);
     let tokenizer_ref: &'static mut Tokenizer = Box::leak(tokenizer_heap);
@@ -39,17 +39,15 @@ pub extern "system" fn Java_org_clulab_transformers_tokenizer_jni_JavaJniTokeniz
 
 #[no_mangle]
 pub extern "system" fn Java_org_clulab_transformers_tokenizer_jni_JavaJniTokenizer_native_1destroy(_env: JNIEnv,
-        _class: JClass, tokenizer_id: jlong) {
+        _class: JClass, tokenizer_id: jlong) -> () {
     eprintln!("[Tokenizer] => destroy_rust_tokenizer({})", tokenizer_id);
     
     destroy_tokenizer(tokenizer_id);
-    return;
 }
 
 #[no_mangle]
 pub extern "system" fn Java_org_clulab_transformers_tokenizer_jni_JavaJniTokenizer_native_1tokenize(env: JNIEnv,
         _class: JClass, tokenizer_id: jlong, j_words: jobjectArray) -> jlong {
-    //let words: Vec<String> = jvm.to_rust(words_instance).unwrap();
     eprintln!("[Tokenizer] => rust_tokenizer_tokenize({}, <words>)", tokenizer_id);
 
     let word_count = env.get_array_length(j_words).unwrap();
@@ -58,10 +56,9 @@ pub extern "system" fn Java_org_clulab_transformers_tokenizer_jni_JavaJniTokeniz
         let j_word = JString::from(env.get_object_array_element(j_words, i).unwrap());
         let r_word: String = env.get_string(j_word).unwrap().into();
 
-        println!("{} = {}", i, r_word);
+        // eprintln!("{} = {}", i, r_word);
         r_words.push(r_word);
     }
-
 
     let tokenizer = unsafe { &*(tokenizer_id as *const Tokenizer) };
     let encoding = tokenizer.encode(&r_words[..], true).unwrap();
@@ -79,45 +76,31 @@ pub extern "system" fn Java_org_clulab_transformers_tokenizer_jni_JavaJniTokeniz
         })
         .collect::<Vec<_>>()[..];
     let tokens = encoding.get_tokens();
+    
+    let tokens_count = tokens.len();
+    let j_token_ids = env.new_int_array(tokens_count as i32).unwrap();
+    let _ = env.set_int_array_region(j_token_ids, 0, token_id_i32s);
+    let j_word_ids = env.new_int_array(tokens_count as i32).unwrap();
+    let _ = env.set_int_array_region(j_word_ids, 0, word_id_i32s);
 
-    for token in tokens {
+    let j_tokens = env.new_object_array(tokens.len() as jsize, "java/lang/String", JObject::null()).unwrap();
+    for i in 1..tokens_count {
+        let token = &tokens[i];
+        let j_token = env.new_string(token).unwrap();
+        let _ = env.set_object_array_element(j_tokens, i as jsize, j_token);
+
         println!("{}", token);
     }
 
+    let _tokenization = env.new_object(
+        "org/clulab/transformers/tokenizer/jni/JavaJniTokenization",
+        "([I[I[Ljava/lang/String;)V",
+        &[
+            JValue::from(j_token_ids),
+            JValue::from(j_word_ids),
+            JValue::from(j_tokens)
+        ]
+    ).unwrap();
 
     return 5;
 }
-
-/*
-#[call_from_java("org.clulab.transformers.tokenizer.j4rs.JavaJ4rsTokenizer.tokenize")]
-fn rust_tokenizer_tokenize(tokenizer_id_instance: Instance, words_instance: Instance) -> Result<Instance, String> {
-    let jvm: Jvm = Jvm::attach_thread().unwrap();
-    let tokenizer_id: i64 = jvm.to_rust(tokenizer_id_instance).unwrap();
-    let words: Vec<String> = jvm.to_rust(words_instance).unwrap();
-    // println!("rust_tokenizer_tokenize({}, <words>)", tokenizer_id);
-
-    let tokenizer = unsafe { &*(tokenizer_id as *const Tokenizer) };
-    let encoding = tokenizer.encode(&words[..], true).unwrap();
-    let token_id_u32s = encoding.get_ids();
-    let token_id_i32s = unsafe { std::mem::transmute::<&[u32], &[i32]>(token_id_u32s) };
-    let word_id_opts = encoding.get_word_ids();
-    let word_id_i32s = &word_id_opts
-       .iter()
-       .map(|&word_id_opt| {
-           if word_id_opt.is_some() {
-               word_id_opt.unwrap() as i32
-           } else {
-               -1
-           }
-       })
-       .collect::<Vec<_>>()[..];
-    let tokens = encoding.get_tokens();
-    let java_tokenization_instance = jvm.create_instance("org.clulab.transformers.tokenizer.j4rs.JavaJ4rsTokenization", &[
-        InvocationArg::try_from(token_id_i32s).unwrap(),
-        InvocationArg::try_from(word_id_i32s).unwrap(),
-        InvocationArg::try_from(tokens).unwrap()
-    ]).unwrap();
-
-    return Ok(java_tokenization_instance);
-}
-*/
