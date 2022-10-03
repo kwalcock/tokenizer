@@ -85,7 +85,7 @@ pub extern "system" fn Java_org_clulab_transformers_tokenizer_jni_JavaJniTokeniz
     let _ = env.set_int_array_region(j_word_ids, 0, word_id_i32s);
 
     let j_tokens = env.new_object_array(tokens.len() as jsize, "java/lang/String", JObject::null()).unwrap();
-    for i in 1..tokens_count {
+    for i in 0..tokens_count {
         let token = &tokens[i];
         let j_token = env.new_string(token).unwrap();
         let _ = env.set_object_array_element(j_tokens, i as jsize, j_token);
