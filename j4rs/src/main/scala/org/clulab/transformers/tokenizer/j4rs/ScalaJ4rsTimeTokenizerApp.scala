@@ -1,6 +1,6 @@
 package org.clulab.transformers.tokenizer.j4rs
 
-object TimeTokenizerApp extends App {
+object ScalaJ4rsTimeTokenizerApp extends App {
   val sentences = Array(
     Array("EU", "rejects", "German", "call", "to", "boycott", "British", "lamb", "."),
     Array("The", "Computational", "Language", "Understanding", "(", "CLU", ")", "Lab", "at", "University", "of", "Arizona", "is", "a", "team", "of", "faculty,", "students,", "and", "research", "programmers", "who", "work", "together", "to", "build", "systems", "that", "extract", "meaning", "from", "natural", "language", "texts", ",", "including", "question", "answering", "(", "answering", "natural", "language", "questions", ")", ",", "information", "extraction", "(", "extracting", "specific", "relations", "and", "events", ")", ",", "semantic", "role", "labeling", "(", "extracting", "semantic", "frames", "that", "model", "who", "did", "what", "to", "whom,", "when", "and", "where", "),", "parsing", "the", "discourse", "structure", "of", "complex", "texts,", "and", "other", "computational", "linguistics", "problems", "."),

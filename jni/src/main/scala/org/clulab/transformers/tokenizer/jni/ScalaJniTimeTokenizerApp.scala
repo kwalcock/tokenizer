@@ -1,6 +1,6 @@
 package org.clulab.transformers.tokenizer.jni
 
-object TimeTokenizerApp extends App {
+object ScalaJniTimeTokenizerApp extends App {
   val sentences = Array(
     Array("EU", "rejects", "German", "call", "to", "boycott", "British", "lamb", "."),
     Array("The", "Computational", "Language", "Understanding", "(", "CLU", ")", "Lab", "at", "University", "of", "Arizona", "is", "a", "team", "of", "faculty,", "students,", "and", "research", "programmers", "who", "work", "together", "to", "build", "systems", "that", "extract", "meaning", "from", "natural", "language", "texts", ",", "including", "question", "answering", "(", "answering", "natural", "language", "questions", ")", ",", "information", "extraction", "(", "extracting", "specific", "relations", "and", "events", ")", ",", "semantic", "role", "labeling", "(", "extracting", "semantic", "frames", "that", "model", "who", "did", "what", "to", "whom,", "when", "and", "where", "),", "parsing", "the", "discourse", "structure", "of", "complex", "texts,", "and", "other", "computational", "linguistics", "problems", "."),
@@ -11,7 +11,7 @@ object TimeTokenizerApp extends App {
   val tokenizer = ScalaJniTokenizer(name)
 
   def loop(): Unit = {
-    1.until(1000).par.foreach { _ =>
+    1.until(1000).foreach { _ =>
       sentences.foreach { words =>
         val tokenization = tokenizer.tokenize(words)
         // println(tokenization.tokens.mkString(" "))
