@@ -5,7 +5,8 @@ def procedurally():
   words = ["EU", "rejects", "German", "call", "to", "boycott", "British", "lamb", "."]
   names = [
     "distilbert-base-cased",
-    "xlm-roberta-base"
+    "xlm-roberta-base",
+    "bert-base-cased"
   ]
 
   for name in names:
@@ -33,11 +34,12 @@ def objectively():
   words = ["EU", "rejects", "German", "call", "to", "boycott", "British", "lamb", "."]
   names = [
     "distilbert-base-cased",
-    "xlm-roberta-base"
+    "xlm-roberta-base",
+    "bert-base-cased"
   ]
 
   for name in names:
-    tokenizer = Tokenizer(name)
+    tokenizer = Tokenizer(name) # add something here for spaces
     token_ids, word_ids, tokens = tokenizer.tokenize(words)
     print(token_ids)
     print(word_ids)
